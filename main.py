@@ -6,9 +6,6 @@ from datetime import date
 import os
 
 BASE_URL = "https://downloads.khinsider.com"
-SONG_PAGE_URL = (
-    ""  # format: https://downloads.khinsider.com/game-soundtracks/album/album-name
-)
 
 DELAY = -1  # in seconds, increase in case of rate limiting
 RETRIES = 3  # number of retries for network requests
@@ -56,9 +53,9 @@ def parse_main_page(parser):
     return subpage_links
 
 
-def handle_main_page():
+def handle_main_page(album_page_url):
     print("Loading main page...")
-    response = get_page(SONG_PAGE_URL)
+    response = get_page(album_page_url)
     if not response:
         print("Failed to load main page. Exiting.")
         exit()
@@ -103,7 +100,7 @@ def handle_subpage(url, id):
     return parse_subpage(parser, id)
 
 
-def handle_subpages(subpage_links):
+def handle_subpages(subpage_links, album_page_url):
     subpage_id = 0
     failed_downloads = []
 
@@ -117,7 +114,7 @@ def handle_subpages(subpage_links):
                 continue
 
             subpage_print("Downloading song...", subpage_id)
-            download_file(subpage_data)
+            download_file(subpage_data, album_page_url)
             subpage_print("Downloaded song!", subpage_id)
         except Exception as e:
             subpage_print(f"Failed to download song: {e}", subpage_id)
@@ -132,16 +129,18 @@ def handle_subpages(subpage_links):
                 print(failed)
 
 
-def get_album_name():
-    path = urlparse(SONG_PAGE_URL).path
+def get_album_name(album_page_url):
+    path = urlparse(album_page_url).path
     album_name = unquote(path.split("/")[-1])
     formatted_name = album_name.replace("-", " ").title()
     return formatted_name
 
 
-def construct_file_path(url):
+def construct_file_path(url, album_page_url):
     filename = unquote(url.split("/")[-1])
-    path = os.path.join("downloads", str(date.today()), get_album_name(), filename)
+    path = os.path.join(
+        "downloads", str(date.today()), get_album_name(album_page_url), filename
+    )
     return path
 
 
@@ -150,13 +149,13 @@ def check_download_directory(path):
     os.makedirs(directory, exist_ok=True)
 
 
-def download_file(url):
+def download_file(url, album_page_url):
     resp = get_page(url, True)
 
     if not resp:
         raise Exception("Failed to fetch file from URL")
 
-    download_path = construct_file_path(url)
+    download_path = construct_file_path(url, album_page_url)
     check_download_directory(download_path)
 
     with open(str(download_path), "wb") as f:
@@ -165,13 +164,9 @@ def download_file(url):
 
 
 def main():
-    if SONG_PAGE_URL == "":
-        print(
-            f'WARNING: SONG_PAGE_URL variable must be set. Open "{BASE_URL}", find an album and paste its link into the variable.'
-        )
-        exit()
-    subpage_links = handle_main_page()
-    handle_subpages(subpage_links)
+    album_page_url = input("Paste the album link: ").strip()
+    subpage_links = handle_main_page(album_page_url)
+    handle_subpages(subpage_links, album_page_url)
     print("Complete!")
 
 
