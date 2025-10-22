@@ -29,7 +29,7 @@ def get_page(url, stream=False):
             response.raise_for_status()
             return response
         except Exception as e:
-            print(f"Failed to get {url} ({attempt + 1}/{RETRIES}: {e}.")
+            print(f"Failed to get {url} ({attempt + 1}/{RETRIES}: {e}.)")
             sleep(RETRY_DELAY)
 
     print(f"Could not fetch {url}.")
