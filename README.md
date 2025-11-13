@@ -27,5 +27,4 @@ Downloads **FLAC albums** from [Khinsider](https://downloads.khinsider.com/) by 
 - Uses a **User-Agent header** to mimic a browser request and avoid blocks.
 
 ## Notes
-- Ensure **SONG_PAGE_URL** is set before running - the script won't run otherwise.
 - Adjust the **DELAY** variable to control pauses between downloads.
